@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blocky World</title>
+</head>
+<body onload="main()">
+    <!-- <p>Christian Sigua</p>
+    <p>csigua@ucsc.edu</p> -->
+
+
+    <canvas id="webgl" width="600" height="400"></canvas>
+    <br>
+    <p id="performance">ms: 0 fps: 0</p>
+    <button class="button" id="normalOn">Normal On</button>
+    <button class="button" id="normalOff">Normal Off</button>
+    <!-- <button class="button" id="triangleButton">X</button>
+    <button class="button" id="circleButton">X</button> -->
+    <p>
+    Camera Angle: <input type="range" min="-180" max="180" value="0" class="slider" id="angleSlide">
+    <p><b>Notes for Graders:</b></p>
+    <ul>
+        <li>Use the <b>mouse</b> to control the camera!</li>
+        <li>Use the <b>W, A, S, D</b> keys to move around</li>
+        <li>Use the <b>Q, E</b> keys to rotate left and right respectively</li>
+        <li>Use the <b>F</b> key to place blocks in a stack in front of you</li>
+        <li>Use the <b>R</b> key to remove a block stack in front of you</li>
+        <li>Use the <b>Shift</b> key to fly up</li>
+        <li>Use the <b>Ctrl</b> key to fly down</li>
+    </ul>
+
+    <script src="./lib/cuon-utils.js"></script>
+    <script src="./lib/cuon-matrix-cse160.js"></script>
+    <script src="./lib/webgl-utils.js"></script>
+    <script src="./lib/webgl-debug.js"></script>
+    <script src="./src/letter.js"></script>
+    <script src="./src/camera.js"></script>
+    <script src="./src/cube.js"></script>
+    <script src="./src/circle.js"></script>
+    <script src="./src/triangle.js"></script>
+    <script src="./src/point.js"></script>
+    <script src="./src/world.js"></script>
+</body>
+</html>
