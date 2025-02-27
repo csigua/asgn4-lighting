@@ -1,11 +1,11 @@
 class Camera {
     constructor() {
-        this.eye = new Vector3([0,1,-1]);
+        this.eye = new Vector3([0,1,-1.5]);
         this.at = new Vector3([0,0.2,10000000]);
         this.up = new Vector3([0,1,0]);
         this.atMag = this.at.magnitude();
 
-        this.speed = 0.1;
+        this.speed = 0.01;
         this.degree_change = 1;
     }
 

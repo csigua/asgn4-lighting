@@ -6,6 +6,7 @@ class Cube {
   //   this.size = 5.0;
   //   this.segments = 10;
   this.matrix = new Matrix4();
+  this.normalMatrix = new Matrix4();
   this.textureNum = -2;
   }
 
@@ -55,6 +56,9 @@ class Cube {
 
     // Pass the matrix to u_ModelMatrix attribute
     gl.uniformMatrix4fv(u_ModelMatrix, false, this.matrix.elements);
+
+    // pass normal matrix
+    gl.uniformMatrix4fv(u_NormalMatrix, false, this.normalMatrix.elements);
 
     var allverts = [];
     var allUVs = [];
@@ -114,6 +118,7 @@ class Cube2 {
   //   this.size = 5.0;
   //   this.segments = 10;
   this.matrix = new Matrix4();
+  this.normalMatrix = new Matrix4();
   this.textureNum = -2;
   }
 

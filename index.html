@@ -18,6 +18,13 @@
     <!-- <button class="button" id="triangleButton">X</button>
     <button class="button" id="circleButton">X</button> -->
     <p>
+    <button class="button" id="lightOn">Light On</button>
+    <button class="button" id="lightOff">Light Off</button>
+    <p>
+    Light X <input type="range" min="-250" max="250" value="0" class="slider" id="lightSlideX">
+    Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSlideY">
+    Light Z <input type="range" min="-250" max="250" value="200" class="slider" id="lightSlideZ">
+    <p>
     Camera Angle: <input type="range" min="-180" max="180" value="0" class="slider" id="angleSlide">
     <p><b>Notes for Graders:</b></p>
     <ul>
@@ -40,6 +47,7 @@
     <script src="./src/circle.js"></script>
     <script src="./src/triangle.js"></script>
     <script src="./src/point.js"></script>
+    <script src="./src/sphere.js"></script>
     <script src="./src/world.js"></script>
 </body>
 </html>
