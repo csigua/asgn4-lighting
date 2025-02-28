@@ -82,27 +82,35 @@ var FSHADER_SOURCE = `
     // Specular
     float specular = pow(max(dot(E, R), 0.0), 100.0);
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
-    vec3 ambient = vec3(gl_FragColor) * 0.1;
+    // vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
+    // vec3 ambient = vec3(gl_FragColor) * 0.1;
 
-    vec3 spotlightDir = normalize(u_SpotlightPos - vec3(v_VertPos));
-    float spotlightCosine = dot(spotlightDir, -u_SpotlightDir);
-    
-    if (spotlightCosine > cos(radians(u_SpotlightCutoff))) {
-      float spotlightFactor = pow(spotlightCosine, u_SpotlightExponent);
-
-      // Update the lighting calculations with spotlight effect
-      vec3 spotlightDiffuse = diffuse * spotlightFactor;
-      vec3 spotlightAmbient = ambient * spotlightFactor;
+    float spotFactor = 1.0;  // multiplier to account for spotlight
+    if (length(u_SpotlightPos) == 0.0) {
+        L = normalize(u_SpotlightPos); 
+    } else {
+        L = normalize(u_SpotlightPos - vec3(v_VertPos));
+        if (u_SpotlightCutoff > 0.0) { // the light is a spotlight
+            vec3 D = -normalize(u_SpotlightDir);
+            float spotCosine = dot(D, L);
+            if (spotCosine >= cos(radians(u_SpotlightCutoff))) { 
+                spotFactor = pow(spotCosine, u_SpotlightExponent);
+            } else {
+                spotFactor = 0.0; // The light will add no color to the point.
+            }
+        }
     }
 
+    // Update the existing lighting calculations with spotFactor
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7 + spotFactor;
+    vec3 ambient = vec3(gl_FragColor) * 0.1 + spotFactor;
+
     if (u_LightOn) {
-      if (u_whichTexture == -2) {
-        gl_FragColor = vec4(specular + diffuse + ambient, 1.0);
-      }
-      else {
-        gl_FragColor = vec4(diffuse + ambient, 1.0);
-      }
+        if (u_whichTexture == -2) {
+            gl_FragColor = vec4(specular + diffuse + ambient, 1.0);
+        } else {
+            gl_FragColor = vec4(diffuse + ambient, 1.0);
+        }
     }
   }`
 
@@ -299,6 +307,11 @@ let stored_color = [0.0, 0.0, 0.0, 0.0];
 let g_normalOn = false;
 let g_lightPos = [0,1.5,0.5];
 let g_lightOn = true;
+let g_spotlightOn = true;
+let g_spotlightPos = [0,1,0.5];
+let g_spotlightDir = [0,-1,0];
+let g_spotlightCutoff = 50;
+let g_spotlightExponent = 10;
 
 // other globals
 let g_camera = new Camera();
@@ -624,6 +637,8 @@ function updateAnimationAngles() {
 
   g_lightPos[0] = Math.cos(g_seconds) * 3;
   g_lightPos[2] = Math.sin(g_seconds) * 3;
+
+  g_spotlightPos[0] = Math.cos(g_seconds);
 }
 
 const keysPressed = {};
@@ -684,6 +699,12 @@ function renderAllShapes() {
 
   // pass the light status to GLSL
   gl.uniform1i(u_LightOn, g_lightOn);
+
+  // pass spotlight variables to GLSL
+  gl.uniform3f(u_SpotlightPos, g_spotlightPos[0], g_spotlightPos[1], g_spotlightPos[2]);
+  gl.uniform3f(u_SpotlightDir, g_spotlightDir[0], g_spotlightDir[1], g_spotlightDir[2]);
+  gl.uniform1f(u_SpotlightCutoff, g_spotlightCutoff);
+  gl.uniform1i(u_SpotlightExponent, g_spotlightExponent);
 
   // draw the light
   var worldLight = new Cube2();
