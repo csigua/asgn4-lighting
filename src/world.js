@@ -85,24 +85,21 @@ var FSHADER_SOURCE = `
     // vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
     // vec3 ambient = vec3(gl_FragColor) * 0.1;
 
+    // spotlight calculation
     float spotFactor = 1.0;  // multiplier to account for spotlight
-    if (length(u_SpotlightPos) == 0.0) {
-        L = normalize(u_SpotlightPos); 
+
+    vec3 W = normalize(u_SpotlightPos - vec3(v_VertPos));
+    vec3 D = -normalize(u_SpotlightDir);
+    
+    float spotCosine = dot(D, W);
+    if (spotCosine >= cos(u_SpotlightCutoff)) { 
+        spotFactor = pow(spotCosine, u_SpotlightExponent);
     } else {
-        L = normalize(u_SpotlightPos - vec3(v_VertPos));
-        if (u_SpotlightCutoff > 0.0) { // the light is a spotlight
-            vec3 D = -normalize(u_SpotlightDir);
-            float spotCosine = dot(D, L);
-            if (spotCosine >= cos(radians(u_SpotlightCutoff))) { 
-                spotFactor = pow(spotCosine, u_SpotlightExponent);
-            } else {
-                spotFactor = 0.0; // The light will add no color to the point.
-            }
-        }
+        spotFactor = 0.0; // The light will add no color to the point.
     }
 
     // Update the existing lighting calculations with spotFactor
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7 + spotFactor;
+    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
     vec3 ambient = vec3(gl_FragColor) * 0.1 + spotFactor;
 
     if (u_LightOn) {
@@ -712,6 +709,13 @@ function renderAllShapes() {
   worldLight.matrix.translate(-g_lightPos[0], g_lightPos[1], g_lightPos[2]);
   worldLight.matrix.scale(0.04,0.04,0.04);
   worldLight.renderFast();
+
+  // draw the spotlight
+  var spotlight = new Cube2();
+  spotlight.color = [20,20,20,1];
+  spotlight.matrix.translate(g_spotlightPos[0], g_spotlightPos[1], g_spotlightPos[2]);
+  spotlight.matrix.scale(0.04,0.04,0.04);
+  spotlight.renderFast();
 
   // draw sphere
   var sphere = new Sphere();
