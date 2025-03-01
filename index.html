@@ -13,6 +13,9 @@
     <canvas id="webgl" width="600" height="400"></canvas>
     <br>
     <p id="performance">ms: 0 fps: 0</p>
+    Ambient Light Color <input type="color" id="ambientColor"><br>
+    Ambient Coefficient (0.0-1.0)<input type="range" min="0" max="100" value="20" class="slider" id="ambCfSlide">
+    <p>
     <button class="button" id="normalOn">Normal On</button>
     <button class="button" id="normalOff">Normal Off</button>
     <!-- <button class="button" id="triangleButton">X</button>
@@ -21,17 +24,13 @@
     <button class="button" id="lightOn">Light On</button>
     <button class="button" id="lightOff">Light Off</button>
     <p>
-    Light Color <input type="color" id="lightColor">
-    <p>
     Light X <input type="range" min="-250" max="250" value="0" class="slider" id="lightSlideX">
     Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSlideY">
     Light Z <input type="range" min="-250" max="250" value="200" class="slider" id="lightSlideZ">
     <p>
-    <p>
     <button class="button" id="spotlightOn">Spotlight On</button>
     <button class="button" id="spotlightOff">Spotlight Off</button>
     <p>
-    Spotlight Color <input type="color" id="spotlightColor">
     <p>
     Spotlight X <input type="range" min="-250" max="250" value="0" class="slider" id="spotlightSlideX">
     Spotlight Y <input type="range" min="-250" max="250" value="100" class="slider" id="spotlightSlideY">

@@ -32,12 +32,12 @@ var FSHADER_SOURCE = `
   uniform sampler2D u_Sampler1;
   uniform sampler2D u_Sampler2;
   uniform int u_whichTexture;
+  uniform vec3 u_AmbientColor;
   uniform vec3 u_LightPos;
   uniform vec3 u_cameraPos;
   uniform bool u_LightOn;
   uniform bool u_SpotlightOn;
-  uniform vec3 u_LightColor;
-  uniform vec3 u_SpotlightColor;
+  uniform float u_AmbientCoefficient;
 
   // spotlight stuff
   uniform vec3 u_SpotlightPos;
@@ -76,17 +76,17 @@ var FSHADER_SOURCE = `
     vec3 N = normalize(v_Normal);
     float nDotL = max(dot(N,L), 0.0);
 
+    vec3 diffuse = vec3(gl_FragColor) * nDotL;
+    vec3 ambient = u_AmbientColor * u_AmbientCoefficient;
+
     // reflection vector
     vec3 R = reflect(-L, N);
 
     // eye
     vec3 E = normalize(u_cameraPos - vec3(v_VertPos));
-
+    
     // Specular
     float specular = pow(max(dot(E, R), 0.0), 100.0);
-
-    // vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
-    // vec3 ambient = vec3(gl_FragColor) * 0.1;
 
     // spotlight calculation
     float spotFactor = 1.0;  // multiplier to account for spotlight
@@ -94,33 +94,30 @@ var FSHADER_SOURCE = `
     vec3 W = normalize(u_SpotlightPos - vec3(v_VertPos));
     vec3 D = normalize(u_SpotlightDir);
 
-    vec3 diffuse = vec3(gl_FragColor) * nDotL * 0.7;
-    vec3 ambient = vec3(gl_FragColor) * 0.2;
-
     float spotCosine = dot(D, -W);
     if (spotCosine >= (u_SpotlightCutoff)) { 
-        spotFactor = pow(spotCosine, u_SpotlightExponent);
+      spotFactor = pow(spotCosine, u_SpotlightExponent);
     } else {
-        spotFactor = 0.0; // The light will add no color to the point.
+      spotFactor = 0.0; // The light will add no color to the point.
     }
 
-    totalColor = specular + diffuse + ambient
+    vec3 totalColor = (specular + diffuse + ambient);
 
     if (u_LightOn) {
-        if (u_whichTexture == -2) {
-            if (u_SpotlightOn) {
-              gl_FragColor = vec4(totalColor + totalColor * spotFactor, 1.0);
-            }
-            else {
-              gl_FragColor = vec4((specular + diffuse + ambient), 1.0);
-            }
-        } else {
-            gl_FragColor = vec4(diffuse + ambient, 1.0);
+      if (u_whichTexture == -2) {
+        if (u_SpotlightOn) {
+          gl_FragColor = vec4(totalColor + totalColor * spotFactor, 1.0);
         }
+        else {
+          gl_FragColor = vec4((specular + diffuse + ambient), 1.0);
+        }
+      } else {
+        gl_FragColor = vec4(diffuse + ambient, 1.0);
+      }
     }
     else {
       if (u_SpotlightOn) {
-        gl_FragColor = vec4(ambient + (specular + diffuse + ambient) * spotFactor, 1.0);
+        gl_FragColor = vec4(ambient + totalColor * spotFactor, 1.0);
       }
       else {
         gl_FragColor = vec4(ambient, 1.0); 
@@ -153,7 +150,7 @@ let u_SpotlightDir;
 let u_SpotlightCutoff;
 let u_SpotlightExponent;
 let u_LightColor;
-let u_SpotlightColor;
+let u_AmbientColor;
 
 let ROBOT = 0;
 let V1_PLATE_COLOR = RGB(60,77,124);
@@ -308,15 +305,15 @@ function connectVariablesToGLSL() {
     return;
   }
 
-  u_SpotlightColor = gl.getUniformLocation(gl.program, 'u_SpotlightColor');
-  if (!u_SpotlightColor) {
-    console.log('Failed to get the storage location of u_SpotlightColor');
+  u_AmbientColor = gl.getUniformLocation(gl.program, 'u_AmbientColor');
+  if (!u_AmbientColor) {
+    console.log('Failed to get the storage location of u_AmbientColor');
     return;
   }
-
-  u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
-  if (!u_LightColor) {
-    console.log('Failed to get the storage location of u_LightColor');
+  
+  u_AmbientCoefficient = gl.getUniformLocation(gl.program, 'u_AmbientCoefficient');
+  if (!u_AmbientCoefficient) {
+    console.log('Failed to get the storage location of u_AmbientCoefficient');
     return;
   }
 
@@ -348,8 +345,8 @@ let g_spotlightDir = [0,-1,0];
 let g_spotlightCutoff = 0.7;
 let g_spotlightExponent = 20;
 
-let g_lightColor = [255,255,255];
-let g_spotlightColor = [255,255,255];
+let g_ambientCoefficient = 0.2;
+let g_ambientColor = [0.0, 0.3, 0.0];
 
 // other globals
 let g_camera = new Camera();
@@ -449,6 +446,8 @@ function addActionsForHtmlUI() {
   // document.getElementById('yellowSlide').addEventListener('mousemove', function() {g_yellowAngle = this.value; renderAllShapes()});
   // document.getElementById('magentaSlide').addEventListener('mousemove', function() {g_magentaAngle = this.value; renderAllShapes()});
 
+  document.getElementById('ambCfSlide').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_ambientCoefficient = this.value/100; renderAllShapes(); }});
+
   document.getElementById('lightSlideX').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[0] = this.value/100; renderAllShapes(); }});
   document.getElementById('lightSlideY').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[1] = this.value/100; renderAllShapes(); }});
   document.getElementById('lightSlideZ').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[2] = this.value/100; renderAllShapes()}; });
@@ -460,8 +459,17 @@ function addActionsForHtmlUI() {
   document.getElementById('cutoffSlide').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_spotlightCutoff = this.value/1000; renderAllShapes()}; });
   document.getElementById('exponentSlide').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_spotlightExponent = this.value; renderAllShapes()}; });
 
+  document.getElementById('ambientColor').addEventListener('input', function() { g_ambientColor = hexToRGB(this.value); renderAllShapes() });
+
   // // Property Slider events
   document.getElementById('angleSlide').addEventListener('mousemove', function() { g_globalAngle = this.value; renderAllShapes(); });
+}
+
+// from https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+
+function hexToRGB(hex) {
+  var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255];
 }
 
 let imageLoaded = false;
@@ -754,8 +762,10 @@ function renderAllShapes() {
   gl.uniform1f(u_SpotlightExponent, g_spotlightExponent);
 
   // pass light colors to GLSL
-  gl.uniform3f(u_LightColor, g_lightColor[0], g_lightColor[1], g_lightColor[2]);
-  gl.uniform3f(u_SpotlightColor, g_spotlightColor[0], g_spotlightColor[0], g_spotlightColor[0]);
+  gl.uniform3f(u_AmbientColor, g_ambientColor[0], g_ambientColor[1], g_ambientColor[2]);
+
+  // pass ambient coefficient to GLSL
+  gl.uniform1f(u_AmbientCoefficient, g_ambientCoefficient);
 
   // draw the light
   var worldLight = new Cube2();
