@@ -5,54 +5,75 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>lighting-integrated feral robot and its trusty abstract beach ball</title>
 </head>
+<style>
+    body {
+        display: flex;
+        flex-direction: row;
+        align-items: flex-start;
+    }
+
+    .main_canvas {
+        position:sticky;
+        top: 0;
+        margin-right: 20px;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .controls {
+        display: flex;
+        flex-direction: column;
+        width: 15em;
+    }
+</style>
+
 <body onload="main()">
-    <!-- <p>Christian Sigua</p>
-    <p>csigua@ucsc.edu</p> -->
-
-
-    <canvas id="webgl" width="600" height="400"></canvas>
-    <br>
-    <p id="performance">ms: 0 fps: 0</p>
-    <button class="button" id="specAmbOn">Fragment-specific Ambient</button>
-    <button class="button" id="customAmb">Custom Ambient Color</button><br>
-    Ambient Light Color <input type="color" id="ambientColor"><br>
-    Ambient Coefficient (0.0-1.0)<input type="range" min="0" max="100" value="20" class="slider" id="ambCfSlide">
-    <p>
-    <button class="button" id="normalOn">Normal On</button>
-    <button class="button" id="normalOff">Normal Off</button>
-    <!-- <button class="button" id="triangleButton">X</button>
-    <button class="button" id="circleButton">X</button> -->
-    <p>
-    <button class="button" id="lightOn">Light On</button>
-    <button class="button" id="lightOff">Light Off</button><br>
-    Point Light Color <input type="color" id="lightColor">
-    <p>
-    Light X <input type="range" min="-250" max="250" value="0" class="slider" id="lightSlideX">
-    Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSlideY">
-    Light Z <input type="range" min="-250" max="250" value="200" class="slider" id="lightSlideZ">
-    <p>
-    <button class="button" id="spotlightOn">Spotlight On</button>
-    <button class="button" id="spotlightOff">Spotlight Off</button>
-    <p>
-    Spotlight Color <input type="color" id="spotlightColor">
-    <p>
-    Spotlight X <input type="range" min="-250" max="250" value="0" class="slider" id="spotlightSlideX">
-    Spotlight Y <input type="range" min="-250" max="250" value="100" class="slider" id="spotlightSlideY">
-    Spotlight Z <input type="range" min="-250" max="250" value="200" class="slider" id="spotlightSlideZ">
-    <p></p>
-    Spotlight Cutoff: <input type="range" min="750" max="1000" value="980" class="slider" id="cutoffSlide"><br>
-    Spotlight Exponent: <input type="range" min="0" max="100" value="20" class="slider" id="exponentSlide"><p></p>
-    Camera Angle: <input type="range" min="-180" max="180" value="0" class="slider" id="angleSlide">
-    <p><b>Notes for Graders:</b></p>
-    <ul>
-        <li>Use the <b>mouse</b> to control the camera!</li>
-        <li>Use the <b>W, A, S, D</b> keys to move around</li>
-        <li>Use the <b>Q, E</b> keys to rotate left and right respectively</li>
-        <li>Use the <b>F</b> key to place blocks in a stack in front of you</li>
-        <li>Use the <b>R</b> key to remove a block stack in front of you</li>
-        <li>Use the <b>Shift</b> key to fly up</li>
-        <li>Use the <b>Ctrl</b> key to fly down</li>
-    </ul>
+    <div class="main_canvas">
+        <canvas id="webgl" width="800" height="600"></canvas>
+        <b id="performance">ms: 0 fps: 0</b>
+        <p>
+        <p><b>Controls:</b></p>
+        <ul>
+            <li>Use the <b>mouse</b> to control the camera!</li>
+            <li>Use the <b>W, A, S, D</b> keys to move around</li>
+            <li>Use the <b>Q, E</b> keys to rotate left and right respectively</li>
+            <li>Use the <b>F</b> key to place blocks in a stack in front of you</li>
+            <li>Use the <b>R</b> key to remove a block stack in front of you</li>
+            <li>Use the <b>Shift</b> key to fly up</li>
+            <li>Use the <b>Ctrl</b> key to fly down</li>
+        </ul>
+    </div>
+    <div class="controls">
+        <h2>Controll all lights</h2>
+        <button class="button" id="allLightsOn">LIGHTS ON</button><br>
+        <button class="button" id="allLightsOff">LIGHTS OFF</button><br>
+        <h2>Ambient light controls</h2>
+        <button class="button" id="specAmbOn">Fragment-specific Ambient</button>
+        <button class="button" id="customAmb">Custom Ambient Color</button><br>
+        Ambient Light Color <input type="color" id="ambientColor"><br>
+        Ambient Coefficient (0.0-1.0)<input type="range" min="0" max="100" value="20" class="slider" id="ambCfSlide">
+        <h2>Show normals</h2>
+        <button class="button" id="normalOn">Normal On</button>
+        <button class="button" id="normalOff">Normal Off</button>
+        <h2>Point light controls</h2>
+        <button class="button" id="lightOn">Point Light On</button>
+        <button class="button" id="lightOff">Point Light Off</button><br>
+        Point Light Color <input type="color" id="lightColor">
+        Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSlideY">
+        <h2>Spotlight controls</h2>
+        <button class="button" id="spotlightOn">Spotlight On</button>
+        <button class="button" id="spotlightOff">Spotlight Off</button>
+        Spotlight Color <input type="color" id="spotlightColor">
+        Spotlight X <input type="range" min="-250" max="250" value="0" class="slider" id="spotlightSlideX">
+        Spotlight Y <input type="range" min="-250" max="250" value="100" class="slider" id="spotlightSlideY">
+        Spotlight Z <input type="range" min="-250" max="250" value="200" class="slider" id="spotlightSlideZ">
+        Spotlight Cutoff: <input type="range" min="750" max="1000" value="980" class="slider" id="cutoffSlide"><br>
+        Spotlight Exponent: <input type="range" min="0" max="100" value="20" class="slider" id="exponentSlide">
+        <h2>Adjust camera angle (you should use WASD+mouse instead)</h2>
+        Camera Angle: <input type="range" min="-180" max="180" value="0" class="slider" id="angleSlide">
+    </div>
 
     <script src="./lib/cuon-utils.js"></script>
     <script src="./lib/cuon-matrix-cse160.js"></script>
@@ -67,4 +88,5 @@
     <script src="./src/sphere.js"></script>
     <script src="./src/world.js"></script>
 </body>
+
 </html>

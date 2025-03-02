@@ -121,7 +121,7 @@ var FSHADER_SOURCE = `
         gl_FragColor = vec4(totalColor * u_LightColor + totalColor * spotFactor * u_SpotlightColor, 1.0);
       }
       else {
-        gl_FragColor = vec4((specular + diffuse + ambient), 1.0);
+        gl_FragColor = vec4(totalColor * u_LightColor, 1.0);
       }
     }
     else {
@@ -384,6 +384,9 @@ let g_camera = new Camera();
 
 function addActionsForHtmlUI() {
   // Clear button event
+  document.getElementById('allLightsOn').onclick = function() {g_lightOn = true; g_spotlightOn = true;};
+  document.getElementById('allLightsOff').onclick = function() {g_lightOn = false; g_spotlightOn = false;};
+
   document.getElementById('normalOn').onclick = function() {g_normalOn = true};
   document.getElementById('normalOff').onclick = function() {g_normalOn = false};
 
@@ -401,9 +404,7 @@ function addActionsForHtmlUI() {
 
   document.getElementById('ambCfSlide').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_ambientCoefficient = this.value/100; renderAllShapes(); }});
 
-  document.getElementById('lightSlideX').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[0] = this.value/100; renderAllShapes(); }});
   document.getElementById('lightSlideY').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[1] = this.value/100; renderAllShapes(); }});
-  document.getElementById('lightSlideZ').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_lightPos[2] = this.value/100; renderAllShapes()}; });
 
   document.getElementById('spotlightSlideX').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_spotlightPos[0] = this.value/100; renderAllShapes(); }});
   document.getElementById('spotlightSlideY').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_spotlightPos[1] = this.value/100; renderAllShapes(); }});
