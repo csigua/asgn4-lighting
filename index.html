@@ -13,6 +13,8 @@
     <canvas id="webgl" width="600" height="400"></canvas>
     <br>
     <p id="performance">ms: 0 fps: 0</p>
+    <button class="button" id="specAmbOn">Fragment-specific Ambient</button>
+    <button class="button" id="customAmb">Custom Ambient Color</button><br>
     Ambient Light Color <input type="color" id="ambientColor"><br>
     Ambient Coefficient (0.0-1.0)<input type="range" min="0" max="100" value="20" class="slider" id="ambCfSlide">
     <p>
@@ -22,7 +24,8 @@
     <button class="button" id="circleButton">X</button> -->
     <p>
     <button class="button" id="lightOn">Light On</button>
-    <button class="button" id="lightOff">Light Off</button>
+    <button class="button" id="lightOff">Light Off</button><br>
+    Point Light Color <input type="color" id="lightColor">
     <p>
     Light X <input type="range" min="-250" max="250" value="0" class="slider" id="lightSlideX">
     Light Y <input type="range" min="-250" max="250" value="100" class="slider" id="lightSlideY">
@@ -31,6 +34,7 @@
     <button class="button" id="spotlightOn">Spotlight On</button>
     <button class="button" id="spotlightOff">Spotlight Off</button>
     <p>
+    Spotlight Color <input type="color" id="spotlightColor">
     <p>
     Spotlight X <input type="range" min="-250" max="250" value="0" class="slider" id="spotlightSlideX">
     Spotlight Y <input type="range" min="-250" max="250" value="100" class="slider" id="spotlightSlideY">

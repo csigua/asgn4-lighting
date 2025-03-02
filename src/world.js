@@ -37,7 +37,12 @@ var FSHADER_SOURCE = `
   uniform vec3 u_cameraPos;
   uniform bool u_LightOn;
   uniform bool u_SpotlightOn;
+  uniform bool u_SpecificAmbient;
   uniform float u_AmbientCoefficient;
+
+  // light colors
+  uniform vec3 u_LightColor;
+  uniform vec3 u_SpotlightColor;
 
   // spotlight stuff
   uniform vec3 u_SpotlightPos;
@@ -77,7 +82,15 @@ var FSHADER_SOURCE = `
     float nDotL = max(dot(N,L), 0.0);
 
     vec3 diffuse = vec3(gl_FragColor) * nDotL;
-    vec3 ambient = u_AmbientColor * u_AmbientCoefficient;
+    
+    // ambient color
+    vec3 ambient;
+    if (u_SpecificAmbient) {
+      ambient = vec3(gl_FragColor) * u_AmbientCoefficient;
+    }
+    else {
+      ambient = u_AmbientColor * u_AmbientCoefficient;
+    }
 
     // reflection vector
     vec3 R = reflect(-L, N);
@@ -86,7 +99,7 @@ var FSHADER_SOURCE = `
     vec3 E = normalize(u_cameraPos - vec3(v_VertPos));
     
     // Specular
-    float specular = pow(max(dot(E, R), 0.0), 100.0);
+    vec3 specular = pow(max(dot(E, R), 0.0), 100.0) * u_LightColor;
 
     // spotlight calculation
     float spotFactor = 1.0;  // multiplier to account for spotlight
@@ -104,20 +117,16 @@ var FSHADER_SOURCE = `
     vec3 totalColor = (specular + diffuse + ambient);
 
     if (u_LightOn) {
-      if (u_whichTexture == -2) {
-        if (u_SpotlightOn) {
-          gl_FragColor = vec4(totalColor + totalColor * spotFactor, 1.0);
-        }
-        else {
-          gl_FragColor = vec4((specular + diffuse + ambient), 1.0);
-        }
-      } else {
-        gl_FragColor = vec4(diffuse + ambient, 1.0);
+      if (u_SpotlightOn) {
+        gl_FragColor = vec4(totalColor * u_LightColor + totalColor * spotFactor * u_SpotlightColor, 1.0);
+      }
+      else {
+        gl_FragColor = vec4((specular + diffuse + ambient), 1.0);
       }
     }
     else {
       if (u_SpotlightOn) {
-        gl_FragColor = vec4(ambient + totalColor * spotFactor, 1.0);
+        gl_FragColor = vec4(ambient + totalColor * spotFactor * u_SpotlightColor, 1.0);
       }
       else {
         gl_FragColor = vec4(ambient, 1.0); 
@@ -317,6 +326,24 @@ function connectVariablesToGLSL() {
     return;
   }
 
+  u_SpecificAmbient = gl.getUniformLocation(gl.program, 'u_SpecificAmbient');
+  if (!u_SpecificAmbient) {
+    console.log('Failed to get the storage location of u_SpecificAmbient');
+    return;
+  }
+
+  u_LightColor = gl.getUniformLocation(gl.program, 'u_LightColor');
+  if (!u_LightColor) {
+    console.log('Failed to get the storage location of u_LightColor');
+    return;
+  }
+
+  u_SpotlightColor = gl.getUniformLocation(gl.program, 'u_SpotlightColor');
+  if (!u_SpotlightColor) {
+    console.log('Failed to get the storage location of u_SpotlightColor');
+    return;
+  }
+
   // set an initial value for this matrix to identity
   var identityM = new Matrix4();
   gl.uniformMatrix4fv(u_ModelMatrix, false, identityM.elements);
@@ -345,92 +372,15 @@ let g_spotlightDir = [0,-1,0];
 let g_spotlightCutoff = 0.7;
 let g_spotlightExponent = 20;
 
+let g_specificAmbient = true;
 let g_ambientCoefficient = 0.2;
 let g_ambientColor = [0.0, 0.3, 0.0];
 
+let g_lightColor = [1.0, 1.0, 1.0];
+let g_spotlightColor = [1.0, 0.5, 0.0];
+
 // other globals
 let g_camera = new Camera();
-
-// head variables
-let g_headRotX = 3;
-let g_headRotY = 0;
-
-// body variables
-let g_bodyX = 0.4;
-let g_bodyY = 0;
-let g_bodyZ = 1;
-
-// arm variables
-let g_leftShoulderRotX = 0;
-let g_leftShoulderRotY = 0;
-let g_leftShoulderRotZ = 0;
-let g_leftElbowRot = 8;
-let g_leftWristRotX = 0;
-let g_leftWristRotY = 0;
-let g_leftWristRotZ = 0;
-
-let g_rightShoulderRotX = 0;
-let g_rightShoulderRotY = 0;
-let g_rightShoulderRotZ = 0;
-let g_rightElbowRot = 8;
-let g_rightWristRotX = 0;
-let g_rightWristRotY = 0;
-let g_rightWristRotZ = 0;
-
-// leg variables
-let g_leftTopLegRotX = 0;
-let g_leftTopLegRotY = 0;
-let g_leftTopLegRotZ = 0;
-let g_leftKneeRot = 0;
-let g_leftAnkleRot = 0;
-
-let g_rightTopLegRotX = 0;
-let g_rightTopLegRotY = 0;
-let g_rightTopLegRotZ = 0;
-let g_rightKneeRot = 0;
-let g_rightAnkleRot = 0;
-
-// wing spread variable
-let g_wingCurl = 0;
-
-let tagScore = 0;
-let hitboxSize = 1;
-
-// animation global variables
-let idle = true;
-
-function lockVars() {
-  g_headRotX = 3;
-  g_headRotY = 0;
-  g_bodyX = 0.4;
-  g_bodyY = 0;
-  g_bodyZ = 1;
-  g_leftShoulderRotX = 0;
-  g_leftShoulderRotY = 0;
-  g_leftShoulderRotZ = 0;
-  g_leftElbowRot = 8;
-  g_leftWristRotX = 0;
-  g_leftWristRotY = 0;
-  g_leftWristRotZ = 0;
-  g_rightShoulderRotX = 0;
-  g_rightShoulderRotY = 0;
-  g_rightShoulderRotZ = 0;
-  g_rightElbowRot = 8;
-  g_rightWristRotX = 0;
-  g_rightWristRotY = 0;
-  g_rightWristRotZ = 0;
-  g_leftTopLegRotX = 0;
-  g_leftTopLegRotY = 0;
-  g_leftTopLegRotZ = 0;
-  g_leftKneeRot = 0;
-  g_leftAnkleRot = 0;
-  g_rightTopLegRotX = 0;
-  g_rightTopLegRotY = 0;
-  g_rightTopLegRotZ = 0;
-  g_rightKneeRot = 0;
-  g_rightAnkleRot = 0;
-  g_wingCurl = 0;
-}
 
 function addActionsForHtmlUI() {
   // Clear button event
@@ -442,6 +392,9 @@ function addActionsForHtmlUI() {
 
   document.getElementById('spotlightOn').onclick = function() {g_spotlightOn = true};
   document.getElementById('spotlightOff').onclick = function() {g_spotlightOn = false};
+
+  document.getElementById('specAmbOn').onclick = function() {g_specificAmbient = true};
+  document.getElementById('customAmb').onclick = function() {g_specificAmbient = false};
 
   // document.getElementById('yellowSlide').addEventListener('mousemove', function() {g_yellowAngle = this.value; renderAllShapes()});
   // document.getElementById('magentaSlide').addEventListener('mousemove', function() {g_magentaAngle = this.value; renderAllShapes()});
@@ -460,6 +413,8 @@ function addActionsForHtmlUI() {
   document.getElementById('exponentSlide').addEventListener('mousemove', function(ev) {if(ev.buttons == 1) { g_spotlightExponent = this.value; renderAllShapes()}; });
 
   document.getElementById('ambientColor').addEventListener('input', function() { g_ambientColor = hexToRGB(this.value); renderAllShapes() });
+  document.getElementById('lightColor').addEventListener('input', function() { g_lightColor = hexToRGB(this.value); renderAllShapes() });
+  document.getElementById('spotlightColor').addEventListener('input', function() { g_spotlightColor = hexToRGB(this.value); renderAllShapes() });
 
   // // Property Slider events
   document.getElementById('angleSlide').addEventListener('mousemove', function() { g_globalAngle = this.value; renderAllShapes(); });
@@ -718,6 +673,87 @@ const V1_BODY3_COLOR = RGB(44, 44, 54);
 const V1_YELLOW = RGB(255, 220, 13);
 const V1_WIRES = RGB(72, 15, 18);
 
+// head variables
+let g_headRotX = 3;
+let g_headRotY = 0;
+
+// body variables
+let g_bodyX = 0.4;
+let g_bodyY = 0;
+let g_bodyZ = 1;
+
+// arm variables
+let g_leftShoulderRotX = 0;
+let g_leftShoulderRotY = 0;
+let g_leftShoulderRotZ = 0;
+let g_leftElbowRot = 8;
+let g_leftWristRotX = 0;
+let g_leftWristRotY = 0;
+let g_leftWristRotZ = 0;
+
+let g_rightShoulderRotX = 0;
+let g_rightShoulderRotY = 0;
+let g_rightShoulderRotZ = 0;
+let g_rightElbowRot = 8;
+let g_rightWristRotX = 0;
+let g_rightWristRotY = 0;
+let g_rightWristRotZ = 0;
+
+// leg variables
+let g_leftTopLegRotX = 0;
+let g_leftTopLegRotY = 0;
+let g_leftTopLegRotZ = 0;
+let g_leftKneeRot = 0;
+let g_leftAnkleRot = 0;
+
+let g_rightTopLegRotX = 0;
+let g_rightTopLegRotY = 0;
+let g_rightTopLegRotZ = 0;
+let g_rightKneeRot = 0;
+let g_rightAnkleRot = 0;
+
+// wing spread variable
+let g_wingCurl = 0;
+
+let tagScore = 0;
+let hitboxSize = 1;
+
+// animation global variables
+let idle = true;
+
+function lockVars() {
+  g_headRotX = 3;
+  g_headRotY = 0;
+  g_bodyX = 0.4;
+  g_bodyY = 0;
+  g_bodyZ = 1;
+  g_leftShoulderRotX = 0;
+  g_leftShoulderRotY = 0;
+  g_leftShoulderRotZ = 0;
+  g_leftElbowRot = 8;
+  g_leftWristRotX = 0;
+  g_leftWristRotY = 0;
+  g_leftWristRotZ = 0;
+  g_rightShoulderRotX = 0;
+  g_rightShoulderRotY = 0;
+  g_rightShoulderRotZ = 0;
+  g_rightElbowRot = 8;
+  g_rightWristRotX = 0;
+  g_rightWristRotY = 0;
+  g_rightWristRotZ = 0;
+  g_leftTopLegRotX = 0;
+  g_leftTopLegRotY = 0;
+  g_leftTopLegRotZ = 0;
+  g_leftKneeRot = 0;
+  g_leftAnkleRot = 0;
+  g_rightTopLegRotX = 0;
+  g_rightTopLegRotY = 0;
+  g_rightTopLegRotZ = 0;
+  g_rightKneeRot = 0;
+  g_rightAnkleRot = 0;
+  g_wingCurl = 0;
+}
+
 function renderAllShapes() {
 
   // check the time at the start of this function
@@ -758,27 +794,30 @@ function renderAllShapes() {
   // pass spotlight variables to GLSL
   gl.uniform3f(u_SpotlightPos, g_spotlightPos[0], g_spotlightPos[1], g_spotlightPos[2]);
   gl.uniform3f(u_SpotlightDir, g_spotlightDir[0], g_spotlightDir[1], g_spotlightDir[2]);
+  gl.uniform3f(u_SpotlightColor, g_spotlightColor[0], g_spotlightColor[1], g_spotlightColor[2]);
   gl.uniform1f(u_SpotlightCutoff, g_spotlightCutoff);
   gl.uniform1f(u_SpotlightExponent, g_spotlightExponent);
 
   // pass light colors to GLSL
+  gl.uniform3f(u_LightColor, g_lightColor[0], g_lightColor[1], g_lightColor[2])
   gl.uniform3f(u_AmbientColor, g_ambientColor[0], g_ambientColor[1], g_ambientColor[2]);
 
-  // pass ambient coefficient to GLSL
+  // pass ambient stuff to GLSL
+  gl.uniform1i(u_SpecificAmbient, g_specificAmbient);
   gl.uniform1f(u_AmbientCoefficient, g_ambientCoefficient);
 
   // draw the light
   var worldLight = new Cube2();
-  worldLight.color = [20,20,20,1];
+  worldLight.color = [5*g_lightColor[0],5*g_lightColor[1],5*g_lightColor[2],1];
   worldLight.matrix.translate(-g_lightPos[0], g_lightPos[1], g_lightPos[2]);
-  worldLight.matrix.scale(0.04,0.04,0.04);
+  worldLight.matrix.scale(0.1,0.1,0.1);
   worldLight.renderFast();
 
   // draw the spotlight
   var spotlight = new Cube2();
-  spotlight.color = [20,20,20,1];
+  spotlight.color = [5*g_spotlightColor[0],5*g_spotlightColor[1],5*g_spotlightColor[2],1];
   spotlight.matrix.translate(g_spotlightPos[0], g_spotlightPos[1], g_spotlightPos[2]);
-  spotlight.matrix.scale(0.04,0.04,0.04);
+  spotlight.matrix.scale(0.1,0.1,0.1);
   spotlight.renderFast();
 
   // draw sphere
@@ -791,7 +830,7 @@ function renderAllShapes() {
   // draw the floor
   var floor = new Cube2();
   floor.color = [0.5,0,0,1];
-  floor.textureNum = -2;
+  floor.textureNum = 1;
   floor.matrix.translate(-2.5,-1,0);
   floor.matrix.scale(4,0,4);
   if (g_normalOn) floor.textureNum = -3;
