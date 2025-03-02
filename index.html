@@ -26,6 +26,7 @@
         display: flex;
         flex-direction: column;
         width: 15em;
+        margin-right: 40px;
     }
 </style>
 
@@ -54,9 +55,12 @@
         <button class="button" id="customAmb">Custom Ambient Color</button><br>
         Ambient Light Color <input type="color" id="ambientColor"><br>
         Ambient Coefficient (0.0-1.0)<input type="range" min="0" max="100" value="20" class="slider" id="ambCfSlide">
+        <p></p>
         <h2>Show normals</h2>
         <button class="button" id="normalOn">Normal On</button>
         <button class="button" id="normalOff">Normal Off</button>
+    </div>
+    <div class="controls">
         <h2>Point light controls</h2>
         <button class="button" id="lightOn">Point Light On</button>
         <button class="button" id="lightOff">Point Light Off</button><br>
